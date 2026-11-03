@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;use App\Models\Appointment;use App\Models\ContactMessage;use Illuminate\Http\Request;
+class InboxController extends Controller {public function appointments(){ $items=Appointment::with('doctor')->latest()->paginate(25);return view('admin.inbox.appointments',compact('items'));}public function messages(){ $items=ContactMessage::latest()->paginate(25);return view('admin.inbox.messages',compact('items'));}public function appointmentStatus(Request $r,$id){$d=$r->validate(['status'=>'required|in:Pending,Confirmed,Cancelled']);Appointment::findOrFail($id)->update($d);return back();}public function messageStatus(Request $r,$id){$d=$r->validate(['status'=>'required|in:New,Read,Closed']);ContactMessage::findOrFail($id)->update($d);return back();}}

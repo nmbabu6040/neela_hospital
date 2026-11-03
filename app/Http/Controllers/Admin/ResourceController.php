@@ -1,0 +1,15 @@
+<?php
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;use App\Models\Content;use Illuminate\Http\Request;use Illuminate\Support\Str;
+class ResourceController extends Controller {
+ public array $types=['doctors'=>'doctor','departments'=>'department','hospitals'=>'hospital','packages'=>'package','news'=>'news','gallery'=>'gallery','offers'=>'offer','videos'=>'video','journal'=>'journal','sliders'=>'slider','sister-concerns'=>'sister_concern','accreditations'=>'accreditation','md-writeups'=>'md_writeup'];
+ private function type($type){abort_unless(isset($this->types[$type]),404);return $this->types[$type];}
+ public function index($type){$kind=$this->type($type);$items=Content::type($kind)->latest()->paginate(20);return view('admin.resources.index',compact('items','type','kind'));}
+ public function create($type){$this->type($type);return view('admin.resources.form',['item'=>new Content,'type'=>$type]);}
+ public function store(Request $r,$type){$kind=$this->type($type);$data=$this->validateData($r);$data['type']=$kind;$data['slug']=$this->uniqueSlug($data['title']);if($r->hasFile('image'))$data['image']=$r->file('image')->store('hospital','public');Content::create($data);return redirect('/admin/content/'.$type)->with('success','Content created.');}
+ public function edit($type,$id){$this->type($type);$item=Content::findOrFail($id);abort_unless($item->type===$this->types[$type],404);return view('admin.resources.form',compact('item','type'));}
+ public function update(Request $r,$type,$id){$this->type($type);$item=Content::findOrFail($id);abort_unless($item->type===$this->types[$type],404);$data=$this->validateData($r);$data['slug']=$this->uniqueSlug($data['title'],$item->id);if($r->hasFile('image'))$data['image']=$r->file('image')->store('hospital','public');$item->update($data);return redirect('/admin/content/'.$type)->with('success','Content updated.');}
+ public function destroy($type,$id){$this->type($type);$item=Content::findOrFail($id);abort_unless($item->type===$this->types[$type],404);$item->delete();return back()->with('success','Content deleted.');}
+ private function validateData(Request $r){$d=$r->validate(['title'=>'required|string|max:190','summary'=>'nullable|string|max:2000','body'=>'nullable|string','extra_json'=>'nullable|string','image'=>'nullable|image|max:4096','is_published'=>'nullable|boolean','sort_order'=>'nullable|integer|min:0']);$extra=[];if(!empty($d['extra_json'])){$extra=json_decode($d['extra_json'],true);if(!is_array($extra))throw \Illuminate\Validation\ValidationException::withMessages(['extra_json'=>'Extra data must be valid JSON object.']);}unset($d['extra_json']);$d['extra']=$extra;$d['is_published']=$r->boolean('is_published');$d['sort_order']=$d['sort_order']??0;return $d;}
+ private function uniqueSlug($title,$except=null){$base=Str::slug($title);$slug=$base;$n=1;while(Content::where('slug',$slug)->when($except,fn($q)=>$q->where('id','!=',$except))->exists())$slug=$base.'-'.$n++;return $slug;}
+}
