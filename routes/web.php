@@ -11,6 +11,10 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\HospitalController;
 use App\Http\Controllers\Admin\DepartmentController as AdminDepartmentController;
 use App\Http\Controllers\Admin\HospitalController as AdminHospitalController;
+
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
+use App\Http\Controllers\Admin\DoctorScheduleController;
 use App\Http\Middleware\EnsureAdmin;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -24,6 +28,13 @@ Route::get('/hospitals', [HospitalController::class, 'index'])->name('hospitals.
 Route::get('/hospitals/{slug}', [HospitalController::class, 'show'])->name('hospitals.show');
 Route::get('/doctors/{slug}', [PublicDoctorController::class, 'show'])->name('doctors.show');
 
+Route::get('/appointment', [AppointmentController::class, 'create'])->name('appointments.create');
+Route::post('/appointment', [AppointmentController::class, 'store'])->name('appointments.store');
+Route::get('/appointment/success/{appointment}', [AppointmentController::class, 'success'])->name('appointments.success');
+Route::get('/appointment-data/doctors/{doctor}/hospitals', [AppointmentController::class, 'hospitalsForDoctor']);
+Route::get('/appointment-data/departments/{department}/doctors', [AppointmentController::class, 'doctorsForDepartment']);
+Route::get('/appointment-slots', [AppointmentController::class, 'timeSlots'])->name('appointments.slots');
+
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -35,5 +46,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('doctors', AdminDoctorController::class)->except(['show']);
         Route::resource('departments', AdminDepartmentController::class)->except(['show']);
         Route::resource('hospitals', AdminHospitalController::class)->except(['show']);
+
+        Route::get('/appointments', [AdminAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{appointment}', [AdminAppointmentController::class, 'show'])->name('appointments.show');
+        Route::patch('/appointments/{appointment}', [AdminAppointmentController::class, 'update'])->name('appointments.update');
+        Route::delete('/appointments/{appointment}', [AdminAppointmentController::class, 'destroy'])->name('appointments.destroy');
+
+        Route::resource('schedules', DoctorScheduleController::class)->except(['show']);
     });
 });

@@ -1,0 +1,9 @@
+<div class="admin-card"><div class="grid">
+<div class="field"><label>Doctor *</label><select name="doctor_id" required><option value="">Select doctor</option>@foreach($doctors as $doctor)<option value="{{ $doctor->id }}" @selected(old('doctor_id',$schedule->doctor_id ?? '')==$doctor->id)>{{ $doctor->name }}</option>@endforeach</select></div>
+<div class="field"><label>Hospital *</label><select name="hospital_id" required><option value="">Select hospital</option>@foreach($hospitals as $hospital)<option value="{{ $hospital->id }}" @selected(old('hospital_id',$schedule->hospital_id ?? '')==$hospital->id)>{{ $hospital->name }}</option>@endforeach</select></div>
+<div class="field"><label>Visiting Day *</label><select name="day_of_week" required><option value="">Select day</option>@foreach(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] as $day=>$label)<option value="{{ $day }}" @selected((string)old('day_of_week',$schedule->day_of_week ?? '')===(string)$day)>{{ $label }}</option>@endforeach</select><small class="muted">Sunday=0 ... Saturday=6</small></div>
+<div class="field"><label>Availability</label><label class="check-row"><input type="checkbox" name="is_available" value="1" @checked(old('is_available',$schedule->is_available ?? true))> Available for booking</label></div>
+<div class="field"><label>Start Time *</label><input type="time" name="start_time" value="{{ old('start_time',isset($schedule)?substr($schedule->start_time,0,5):'17:00') }}" required></div>
+<div class="field"><label>End Time *</label><input type="time" name="end_time" value="{{ old('end_time',isset($schedule)?substr($schedule->end_time,0,5):'21:00') }}" required></div></div>
+<div class="field"><label>Note</label><textarea name="note">{{ old('note',$schedule->note ?? '') }}</textarea></div>
+<div class="admin-actions"><button class="btn">Save Schedule</button><a class="btn btn-muted" href="{{ route('admin.schedules.index') }}">Cancel</a></div></div>
